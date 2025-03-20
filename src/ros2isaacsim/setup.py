@@ -27,7 +27,8 @@ setup(
             "convert_urdf_usd=ros2isaacsim.convert_urdf_usd:main",
             'navigation_controller = ros2isaacsim.navigation_controller:main',
             'sdf_to_urdf=ros2isaacsim.SdftoUrdf:main',
-            'agent_rl=ros2isaacsim.agent_RL:main'
+            'agent_rl=ros2isaacsim.agent_RL:main',
+            "client_pub_ped=ros2isaacsim.client_publisher:main"
             ],
     },
 )
