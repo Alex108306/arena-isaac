@@ -10,9 +10,12 @@ simulation_app = SimulationApp(CONFIG)
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.insert(0,str(parent_dir))
 
+
 # Import Isaac Sim dependencies
 import numpy as np
 import yaml
+import carb
+import omni.timeline
 from omni.isaac.core import SimulationContext
 from omni.isaac.core.utils import extensions, stage
 from omni.isaac.nucleus import get_assets_root_path
@@ -27,13 +30,36 @@ from omni.isaac.core.utils.stage import get_current_stage, open_stage
 from pxr import Gf, UsdLux, Sdf
 import random
 
+EXTENSIONS_PEOPLE = [
+    'omni.anim.people', 
+    'omni.anim.navigation.bundle', 
+    'omni.anim.timeline',
+    'omni.anim.graph.bundle', 
+    'omni.anim.graph.core', 
+    'omni.anim.graph.ui',
+    'omni.anim.retarget.bundle', 
+    'omni.anim.retarget.core',
+    'omni.anim.retarget.ui', 
+    'omni.kit.scripting',
+    'omni.graph.io',
+    'omni.anim.curve.core',
+    'omni.anim.navigation.core'
+]
+
+for ext_people in EXTENSIONS_PEOPLE:
+    extensions.enable_extension(ext_people)
+
 #Import world generation dependencies
 import omni.replicator.core as rep
 import omni.syntheticdata._syntheticdata as sd
+#imprt navmesh gen
+import omni.anim.navigation.core as nav
 
 import rclpy
 
 from isaacsim_msgs.srv import ImportUsd, ImportYaml
+from isaacsim_msgs.srv import Pedestrian
+from pedestrian.simulator.logic.people_manager import PeopleManager
 
 #Import robot models
 from isaac_utils.robot_graphs import assign_robot_model
@@ -45,6 +71,7 @@ from isaac_utils.services import get_prim_attr
 from isaac_utils.services import delete_prim
 from isaac_utils.services import convert_urdf_to_usd
 from isaac_utils.services import import_obstacle
+from isaac_utils.services import spawn_ped
 
 #Import sensors
 from isaac_utils.sensors import imu_setup,publish_imu, contact_sensor_setup, publish_contact_sensor_info, camera_set_up,publish_camera_tf,publish_depth,publish_camera_info,publish_pointcloud_from_depth,publish_rgb, lidar_setup,publish_lidar 
@@ -69,6 +96,33 @@ light_1 = prims.create_prim(
         "inputs:color": (1.0, 1.0, 1.0)
     }
 )
+
+#Navmesh config and baking
+
+omni.kit.commands.execute("CreateNavMeshVolumeCommand",
+    parent_prim_path=Sdf.Path("/World"),
+    layer=stage.GetRootLayer()
+)
+simulation_app.update()
+
+omni.kit.commands.execute(
+            'ChangeSetting',
+            path='/exts/omni.anim.navigation.core/navMesh/config/agentRadius',
+            value=35.0)
+
+omni.kit.commands.execute(
+            'ChangeSetting',
+            path='/exts/omni.anim.people/navigation_settings/dynamic_avoidance_enabled',
+            value=True)
+omni.kit.commands.execute(
+            'ChangeSetting',
+            path='/exts/omni.anim.people/navigation_settings/navmesh_enabled',
+            value=True)
+
+inav = nav.acquire_interface()
+x = inav.start_navmesh_baking()
+simulation_app.update()
+
 assets_root_path = get_assets_root_path()
 
 # stage.add_reference_to_stage(assets_root_path, BACKGROUND_USD_PATH)
@@ -215,6 +269,7 @@ def create_controller(time=120):
     wall_spawn_service = spawn_wall(controller)
     import_yaml_service = import_yaml(controller)
     import_obstacle_service = import_obstacle(controller)
+    import_usd_service = spawn_ped(controller)
     return controller
 
 # update the simulation.
