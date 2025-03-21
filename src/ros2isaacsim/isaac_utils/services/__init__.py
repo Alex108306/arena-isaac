@@ -6,3 +6,4 @@ from .ImportYaml import *
 from .MovePrim import *
 from .SpawnWall import * 
 from .UrdfToUsd import *
+from .SpawnCharacters import *

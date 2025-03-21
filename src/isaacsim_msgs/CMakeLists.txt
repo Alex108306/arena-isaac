@@ -16,6 +16,7 @@ set(msg_files
   "msg/Env.msg"
   "msg/Values.msg"
   "msg/ContactSensor.msg"
+  "msg/Person.msg"
   )
 
 set(srv_files
@@ -29,6 +30,7 @@ set(srv_files
   "srv/ScalePrim.srv"
   "srv/SpawnWall.srv"
   "srv/ImportObstacles.srv"
+  "srv/Pedestrian.srv"
   )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
