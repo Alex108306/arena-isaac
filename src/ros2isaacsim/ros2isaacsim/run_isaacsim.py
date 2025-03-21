@@ -82,7 +82,7 @@ from isaac_utils.sensors import imu_setup,publish_imu, contact_sensor_setup, pub
 # BACKGROUND_USD_PATH = "/Isaac/Environments/Simple_Warehouse/warehouse_with_forklifts.usd"
 
 world = World()
-world.scene.add_ground_plane(size=10000,z_position=0.1)
+world.scene.add_ground_plane(size=100,z_position=0.1)
 extensions.enable_extension("omni.isaac.ros2_bridge")
 simulation_app.update() #update the simulation once for update ros2_bridge.
 simulation_context = SimulationContext(stage_units_in_meters=1.0) #currently we use 1m for simulation.
