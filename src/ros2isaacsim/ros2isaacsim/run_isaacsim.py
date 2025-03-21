@@ -98,6 +98,8 @@ light_1 = prims.create_prim(
 )
 
 #Navmesh config and baking
+simulation_app.update()
+stage = omni.usd.get_context().get_stage()
 
 omni.kit.commands.execute("CreateNavMeshVolumeCommand",
     parent_prim_path=Sdf.Path("/World"),
