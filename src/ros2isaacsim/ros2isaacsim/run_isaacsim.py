@@ -12,22 +12,21 @@ sys.path.insert(0,str(parent_dir))
 
 
 # Import Isaac Sim dependencies
-import numpy as np
-import yaml
 import carb
 import omni.timeline
+from omni.isaac.core.world import World
+from omni.isaac.core.utils import prims
 from omni.isaac.core import SimulationContext
+from pxr import Sdf, Gf
+import yaml
 from omni.isaac.core.utils import extensions, stage
 from omni.isaac.nucleus import get_assets_root_path
 from omni.isaac.core.utils.prims import set_prim_attribute_value
-from omni.isaac.core.world import World
 from omni.importer.urdf import _urdf
 import omni.kit.commands as commands
-import omni.usd 
-from omni.isaac.core.utils import prims
 from omni.isaac.core.utils.rotations import euler_angles_to_quat
 from omni.isaac.core.utils.stage import get_current_stage, open_stage
-from pxr import Gf, UsdLux, Sdf
+from pxr import UsdLux
 import random
 
 EXTENSIONS_PEOPLE = [
@@ -49,13 +48,23 @@ EXTENSIONS_PEOPLE = [
 for ext_people in EXTENSIONS_PEOPLE:
     extensions.enable_extension(ext_people)
 
-#Import world generation dependencies
-import omni.replicator.core as rep
-import omni.syntheticdata._syntheticdata as sd
+extensions.disable_extension("omni.isaac.ros_bridge")
+extensions.enable_extension("omni.isaac.ros2_bridge")
+
+
+import omni.usd
+omni.usd.get_context().new_stage()
+
+import rclpy
+import numpy as np
+
 #imprt navmesh gen
 import omni.anim.navigation.core as nav
 
-import rclpy
+#Import world generation dependencies
+import omni.anim.graph.core as ag
+import omni.replicator.core as rep
+import omni.syntheticdata._syntheticdata as sd
 
 from isaacsim_msgs.srv import ImportUsd, ImportYaml
 from isaacsim_msgs.srv import Pedestrian
@@ -82,8 +91,7 @@ from isaac_utils.sensors import imu_setup,publish_imu, contact_sensor_setup, pub
 # BACKGROUND_USD_PATH = "/Isaac/Environments/Simple_Warehouse/warehouse_with_forklifts.usd"
 
 world = World()
-world.scene.add_ground_plane(size=100,z_position=0.1)
-extensions.enable_extension("omni.isaac.ros2_bridge")
+world.scene.add_ground_plane(size = 100)
 simulation_app.update() #update the simulation once for update ros2_bridge.
 simulation_context = SimulationContext(stage_units_in_meters=1.0) #currently we use 1m for simulation.
 light_1 = prims.create_prim(

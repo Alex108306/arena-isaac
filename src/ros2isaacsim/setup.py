@@ -28,7 +28,8 @@ setup(
             'navigation_controller = ros2isaacsim.navigation_controller:main',
             'sdf_to_urdf=ros2isaacsim.SdftoUrdf:main',
             'agent_rl=ros2isaacsim.agent_RL:main',
-            "client_pub_ped=ros2isaacsim.client_publisher:main"
+            "client_pub_ped=ros2isaacsim.client_publisher:main",
+            "run_isaacsim_ver2=ros2isaacsim.run_isaacsim_ver2:main"
             ],
     },
 )
