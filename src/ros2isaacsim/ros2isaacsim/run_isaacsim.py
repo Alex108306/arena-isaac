@@ -13,11 +13,12 @@ sys.path.insert(0,str(parent_dir))
 
 # Import Isaac Sim dependencies
 import carb
+import omni.usd
 import omni.timeline
 from omni.isaac.core.world import World
 from omni.isaac.core.utils import prims
 from omni.isaac.core import SimulationContext
-from pxr import Sdf, Gf
+from pxr import Sdf, Gf, UsdLux
 import yaml
 from omni.isaac.core.utils import extensions, stage
 from omni.isaac.nucleus import get_assets_root_path
@@ -26,7 +27,6 @@ from omni.importer.urdf import _urdf
 import omni.kit.commands as commands
 from omni.isaac.core.utils.rotations import euler_angles_to_quat
 from omni.isaac.core.utils.stage import get_current_stage, open_stage
-from pxr import UsdLux
 import random
 
 EXTENSIONS_PEOPLE = [
@@ -40,7 +40,7 @@ EXTENSIONS_PEOPLE = [
     'omni.anim.retarget.core',
     'omni.anim.retarget.ui', 
     'omni.kit.scripting',
-    'omni.graph.io',
+    'omni.graph.nodes',
     'omni.anim.curve.core',
     'omni.anim.navigation.core'
 ]
@@ -48,12 +48,16 @@ EXTENSIONS_PEOPLE = [
 for ext_people in EXTENSIONS_PEOPLE:
     extensions.enable_extension(ext_people)
 
+# Update the simulation app with the new extensions
+simulation_app.update()
+
+# -------------------------------------------------------------------------------------------------
+# These lines are needed to restart the USD stage and make sure that the people extension is loaded
+# -------------------------------------------------------------------------------------------------
+omni.usd.get_context().new_stage()
+
 extensions.disable_extension("omni.isaac.ros_bridge")
 extensions.enable_extension("omni.isaac.ros2_bridge")
-
-
-import omni.usd
-omni.usd.get_context().new_stage()
 
 import rclpy
 import numpy as np
@@ -91,7 +95,7 @@ from isaac_utils.sensors import imu_setup,publish_imu, contact_sensor_setup, pub
 # BACKGROUND_USD_PATH = "/Isaac/Environments/Simple_Warehouse/warehouse_with_forklifts.usd"
 
 world = World()
-world.scene.add_ground_plane(size = 100)
+world.scene.add_ground_plane(size=100,z_position=0.1)
 simulation_app.update() #update the simulation once for update ros2_bridge.
 simulation_context = SimulationContext(stage_units_in_meters=1.0) #currently we use 1m for simulation.
 light_1 = prims.create_prim(
@@ -104,6 +108,7 @@ light_1 = prims.create_prim(
         "inputs:color": (1.0, 1.0, 1.0)
     }
 )
+assets_root_path = get_assets_root_path()
 
 #Navmesh config and baking
 simulation_app.update()
@@ -132,8 +137,6 @@ omni.kit.commands.execute(
 inav = nav.acquire_interface()
 x = inav.start_navmesh_baking()
 simulation_app.update()
-
-assets_root_path = get_assets_root_path()
 
 # stage.add_reference_to_stage(assets_root_path, BACKGROUND_USD_PATH)
 
@@ -279,7 +282,7 @@ def create_controller(time=120):
     wall_spawn_service = spawn_wall(controller)
     import_yaml_service = import_yaml(controller)
     import_obstacle_service = import_obstacle(controller)
-    import_usd_service = spawn_ped(controller)
+    import_pedpub_service = spawn_ped(controller)
     return controller
 
 # update the simulation.
